@@ -1,12 +1,10 @@
 <script lang="ts">
-  import { LabelType } from "@mmote/niimbluelib";
   import Modal from "bootstrap/js/dist/modal";
   import {
     heartbeatData,
     printerInfo,
     printerMeta,
     rfidInfo,
-    ribbonRfidInfo,
   } from "$/stores";
   import { tr } from "$/utils/i18n";
   import MdIcon from "$/components/basic/MdIcon.svelte";
@@ -29,48 +27,6 @@
   /** Convert Fahrenheit (from printer) to Celsius for display */
   const fahrenheitToCelsius = (f: number): number => Math.round(((f - 32) * 5) / 9);
 
-  const labelTypeKey = (type: number): string =>
-    `preview.label_type.${LabelType[type] ?? "Invalid"}` as string;
-
-  const paperTitle = $derived.by(() => {
-    if (!$rfidInfo?.tagPresent) return "";
-    const parts: string[] = [];
-    if ($rfidInfo.consumablesType !== LabelType.WithGaps) {
-      parts.push($tr(labelTypeKey($rfidInfo.consumablesType)));
-    }
-    if ($rfidInfo.barCode?.trim()) parts.push(`barcode: ${$rfidInfo.barCode}`);
-    if ($rfidInfo.allPaper > 0) {
-      parts.push(`${$rfidInfo.allPaper}px`);
-      if ($rfidInfo.usedPaper >= 0) parts.push(`${$rfidInfo.usedPaper}/${$rfidInfo.allPaper}`);
-    }
-    return parts.join(" · ");
-  });
-
-  const parseBarCodeDimensions = (barCode: string): { widthMm: number; heightMm: number } | null => {
-    const s = barCode?.trim();
-    if (!s) return null;
-    const match = s.match(/(\d{1,3})\s*[×x*X\-]\s*(\d{1,3})/);
-    if (match) {
-      const w = parseInt(match[1], 10);
-      const h = parseInt(match[2], 10);
-      if (w > 0 && h > 0) return { widthMm: w, heightMm: h };
-    }
-    return null;
-  };
-
-  const paperStatusValue = $derived.by(() => {
-    if (!$rfidInfo?.tagPresent) return "";
-    const dims = parseBarCodeDimensions($rfidInfo.barCode ?? "");
-    if (dims) {
-      const widthCm = Math.round(dims.widthMm * 10) / 100;
-      const heightCm = Math.round(dims.heightMm * 10) / 100;
-      return `${widthCm}×${heightCm} cm`;
-    }
-    const type = $rfidInfo.consumablesType;
-    if (type === LabelType.WithGaps) return "";
-    return $tr(labelTypeKey(type));
-  });
-
   const firmwareVersion = $derived.by(() => {
     const v = $printerInfo?.softwareVersion;
     if (!v) return "";
@@ -79,6 +35,12 @@
       return match ? `v${match[1].split(" ")[0] ?? v}` : v;
     }
     return `v${v}`;
+  });
+
+  const paperRfidId = $derived.by(() => {
+    const r = $rfidInfo;
+    if (!r?.tagPresent) return "";
+    return (r.serialNumber || r.uuid || r.barCode || "").trim();
   });
 
   let lidModalElement = $state<HTMLDivElement | undefined>(undefined);
@@ -131,21 +93,6 @@
       </span>
     {/if}
 
-    {#if $rfidInfo?.tagPresent}
-      <span class="status-item status-item-display" title={paperTitle}>
-        <MdIcon icon="label" />
-        <span class="status-label">{$tr("status.icon.paper")}</span>
-        {#if paperStatusValue}
-          <span class="status-value status-value-paper">{paperStatusValue}</span>
-        {/if}
-      </span>
-    {:else}
-      <span class="status-item status-item-display" title={$tr("status.paper.none")}>
-        <MdIcon icon="label_off" />
-        <span class="status-label">{$tr("status.icon.paper")}</span>
-      </span>
-    {/if}
-
     {#if $heartbeatData}
       <span
         class="status-item status-item-display"
@@ -167,17 +114,12 @@
         class="status-item status-item-display"
         class:status-ok={$heartbeatData.paperRfidSuccess}
         class:status-warn={!$heartbeatData.paperRfidSuccess}
-        title="{$heartbeatData.paperRfidSuccess ? $tr('status.icon.paper_rfid') + ': OK' : $tr('status.icon.paper_rfid') + ': Fail'}">
+        title="{($heartbeatData.paperRfidSuccess ? $tr('status.icon.paper_rfid') + ': OK' : $tr('status.icon.paper_rfid') + ': Fail')}{paperRfidId ? ' · ' + paperRfidId : ''}">
         <MdIcon icon="nfc" />
         <span class="status-label">{$tr("status.icon.paper_rfid")}</span>
-      </span>
-      <span
-        class="status-item status-item-display"
-        class:status-ok={$heartbeatData.ribbonRfidSuccess}
-        class:status-warn={$heartbeatData.ribbonInserted && !$heartbeatData.ribbonRfidSuccess}
-        title="{$heartbeatData.ribbonRfidSuccess ? $tr('status.icon.ribbon_rfid') + ': OK · ' + $tr('status.icon.ribbon_rfid.help') : $heartbeatData.ribbonInserted ? $tr('status.icon.ribbon_rfid.fail') + ' · ' + $tr('status.icon.ribbon_rfid.help') : $tr('status.icon.ribbon_rfid') + ': Not inserted · ' + $tr('status.icon.ribbon_rfid.help')}">
-        <MdIcon icon="view_agenda" />
-        <span class="status-label">{$tr("status.icon.ribbon_rfid")}</span>
+        {#if paperRfidId}
+          <span class="status-value status-value-paper">{paperRfidId}</span>
+        {/if}
       </span>
       {#if $heartbeatData.temp !== undefined}
         <span class="status-item status-item-display" title={$tr("status.icon.temp")}>
