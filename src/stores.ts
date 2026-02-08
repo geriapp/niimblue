@@ -1,5 +1,5 @@
 import { get, readable, writable } from "svelte/store";
-import { AppConfigSchema, CsvParams, CsvParamsSchema, UserIconsList, UserIconsListSchema, type AppConfig, type AutomationProps, type ConnectionState, type ConnectionType, type LabelProps, type RfidLabelProfiles } from "$/types";
+import { AppConfigSchema, CsvParams, CsvParamsSchema, ProfilesFileSchema, UserIconsList, UserIconsListSchema, type AppConfig, type AutomationProps, type ConnectionState, type ConnectionType, type LabelPreset, type LabelProps, type RfidLabelProfiles } from "$/types";
 import {
   NiimbotBluetoothClient,
   NiimbotCapacitorBleClient,
@@ -34,15 +34,22 @@ export const printerMeta = writable<PrinterModelMeta | undefined>();
 export const heartbeatFails = writable<number>(0);
 export const csvData = writablePersisted<CsvParams>("csv_params", CsvParamsSchema, { data: CSV_DEFAULT });
 
-export const rfidProfiles = writable<RfidLabelProfiles>(
-  (() => {
-    try {
-      return LocalStoragePersistence.loadRfidProfiles();
-    } catch {
-      return [];
-    }
-  })(),
-);
+export const rfidProfiles = writable<RfidLabelProfiles>([]);
+export const labelPresets = writable<LabelPreset[]>([]);
+
+export const loadProfilesFromFile = async (): Promise<void> => {
+  try {
+    const res = await fetch("/profiles.json");
+    if (!res.ok) return;
+    const data = await res.json();
+    const parsed = ProfilesFileSchema.parse(data);
+    rfidProfiles.set(parsed.rfidProfiles);
+    labelPresets.set(parsed.labelPresets);
+  } catch {
+    rfidProfiles.set([]);
+    labelPresets.set([]);
+  }
+};
 
 export const currentLabelProps = writable<LabelProps>(DEFAULT_LABEL_PROPS);
 export const labelPropsToApply = writable<LabelProps | null>(null);

@@ -2,18 +2,14 @@ import {
   AutomationPropsSchema,
   ExportedLabelTemplateSchema,
   FabricJsonSchema,
-  LabelPresetSchema,
   LabelPropsSchema,
   PreviewPropsSchema,
-  RfidLabelProfilesSchema,
   type AutomationProps,
   type ConnectionType,
   type ExportedLabelTemplate,
   type FabricJson,
-  type LabelPreset,
   type LabelProps,
   type PreviewProps,
-  type RfidLabelProfiles,
 } from "$/types";
 import { z } from "zod";
 import { FileUtils } from "$/utils/file_utils";
@@ -279,31 +275,6 @@ export class LocalStoragePersistence {
     );
   }
 
-  /**
-   * @throws {z.ZodError}
-   */
-  static saveLabelPresets(presets: LabelPreset[]) {
-    this.validateAndSaveObject(
-      "label_presets",
-      presets,
-      z.array(LabelPresetSchema),
-    );
-  }
-
-  static loadLabelPresets(): LabelPreset[] | null {
-    try {
-      const presets = this.loadAndValidateObject(
-        "label_presets",
-        z.array(LabelPresetSchema),
-      );
-      return presets === null || presets.length === 0 ? null : presets;
-    } catch (e) {
-      console.error("loadLabelPresets error:", e);
-      localStorage.removeItem("label_presets");
-      return null;
-    }
-  }
-
   static loadLastConnectionType(): ConnectionType | null {
     const value = localStorage.getItem("connection_type");
     if (value === null || !["bluetooth", "serial"].includes(value)) {
@@ -372,21 +343,4 @@ export class LocalStoragePersistence {
     return this.loadAndValidateObject("font_cache", z.array(z.string())) ?? [];
   }
 
-  static saveRfidProfiles(profiles: RfidLabelProfiles) {
-    this.validateAndSaveObject("rfid_label_profiles", profiles, RfidLabelProfilesSchema);
-  }
-
-  static loadRfidProfiles(): RfidLabelProfiles {
-    try {
-      const data = this.loadAndValidateObject(
-        "rfid_label_profiles",
-        RfidLabelProfilesSchema,
-      );
-      return data ?? [];
-    } catch (e) {
-      console.error("loadRfidProfiles error:", e);
-      localStorage.removeItem("rfid_label_profiles");
-      return [];
-    }
-  }
 }

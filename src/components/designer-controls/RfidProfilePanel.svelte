@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { rfidInfo, rfidProfiles, currentLabelProps } from "$/stores";
-  import { LocalStoragePersistence } from "$/utils/persistence";
+  import { rfidInfo, rfidProfiles, labelPresets, currentLabelProps } from "$/stores";
   import { FileUtils } from "$/utils/file_utils";
   import { Toasts } from "$/utils/toasts";
   import { tr } from "$/utils/i18n";
   import MdIcon from "$/components/basic/MdIcon.svelte";
   import type { RfidLabelProfile } from "$/types";
-  import { RfidLabelProfilesSchema } from "$/types";
+  import { ProfilesFileSchema } from "$/types";
 
   const paperRfidId = $derived((() => {
     const r = $rfidInfo;
@@ -29,13 +28,11 @@
     } else {
       next.push(profile);
     }
-    LocalStoragePersistence.saveRfidProfiles(next);
     rfidProfiles.set(next);
   };
 
   const onDelete = (rfidId: string) => {
     const next = $rfidProfiles.filter((p) => p.rfidId !== rfidId);
-    LocalStoragePersistence.saveRfidProfiles(next);
     rfidProfiles.set(next);
   };
 
@@ -48,21 +45,24 @@
         return;
       }
 
-      const profiles = RfidLabelProfilesSchema.parse(rawData);
-      LocalStoragePersistence.saveRfidProfiles(profiles);
-      rfidProfiles.set(profiles);
+      const parsed = ProfilesFileSchema.parse(rawData);
+      rfidProfiles.set(parsed.rfidProfiles);
+      labelPresets.set(parsed.labelPresets);
       Toasts.message($tr("params.rfid_profiles.imported"));
     } catch (e) {
-      Toasts.zodErrors(e, "RFID profiles load error:");
+      Toasts.zodErrors(e, "Profiles load error:");
     }
   };
 
   const onExportJson = () => {
     try {
-      FileUtils.saveRfidProfilesAsJson($rfidProfiles);
+      FileUtils.saveProfilesAsJson({
+        rfidProfiles: $rfidProfiles,
+        labelPresets: $labelPresets,
+      });
       Toasts.message($tr("params.rfid_profiles.exported"));
     } catch (e) {
-      Toasts.zodErrors(e, "RFID profiles save error:");
+      Toasts.zodErrors(e, "Profiles save error:");
     }
   };
 </script>

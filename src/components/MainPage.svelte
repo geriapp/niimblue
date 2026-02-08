@@ -1,10 +1,12 @@
 <script lang="ts">
   import { Utils } from "@mmote/niimbluelib";
+  import { onMount } from "svelte";
   import BrowserWarning from "$/components/basic/BrowserWarning.svelte";
   import LabelDesigner from "$/components/LabelDesigner.svelte";
   import PrinterConnector from "$/components/PrinterConnector.svelte";
   import PrinterStatusBar from "$/components/basic/PrinterStatusBar.svelte";
   import RfidProfileApplyPrompt from "$/components/basic/RfidProfileApplyPrompt.svelte";
+  import { loadProfilesFromFile } from "$/stores";
   import { locale, locales, tr } from "$/utils/i18n";
 
   // eslint-disable-next-line no-undef
@@ -13,6 +15,10 @@
   const buildDate = __BUILD_DATE__;
 
   let isStandalone = Utils.getAvailableTransports().capacitorBle;
+
+  onMount(() => {
+    loadProfilesFromFile();
+  });
 </script>
 
 <div class="main-app">

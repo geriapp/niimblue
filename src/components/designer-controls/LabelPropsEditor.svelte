@@ -10,16 +10,13 @@
     type TailPosition,
   } from "$/types";
   import LabelPresetsBrowser from "$/components/designer-controls/LabelPresetsBrowser.svelte";
-  import { printerMeta } from "$/stores";
+  import { labelPresets, printerMeta } from "$/stores";
   import { tr } from "$/utils/i18n";
   import { DEFAULT_LABEL_PRESETS } from "$/defaults";
   import { onMount, tick } from "svelte";
-  import { LocalStoragePersistence } from "$/utils/persistence";
   import type { PrintDirection } from "@mmote/niimbluelib";
   import MdIcon from "$/components/basic/MdIcon.svelte";
   import { Toasts } from "$/utils/toasts";
-  import { FileUtils } from "$/utils/file_utils";
-  import { z } from "zod";
   import DpiSelector from "$/components/designer-controls/DpiSelector.svelte";
   import RfidProfilePanel from "$/components/designer-controls/RfidProfilePanel.svelte";
 
@@ -36,7 +33,7 @@
   const labelSplits: LabelSplit[] = ["none", "vertical", "horizontal"];
   const mirrorTypes: MirrorType[] = ["none", "flip", "copy"];
 
-  let labelPresets = $state<LabelPreset[]>(DEFAULT_LABEL_PRESETS);
+  const presets = $derived($labelPresets.length > 0 ? $labelPresets : DEFAULT_LABEL_PRESETS);
 
   let title = $state<string | undefined>("");
   let prevUnit: LabelUnit = "mm";
@@ -119,7 +116,7 @@
   };
 
   const onLabelPresetSelected = (index: number) => {
-    const preset = labelPresets[index];
+    const preset = presets[index];
 
     if (preset !== undefined) {
       dpmm = preset.dpmm;
@@ -141,10 +138,11 @@
   };
 
   const onLabelPresetDelete = (idx: number) => {
-    const result = [...labelPresets];
-    result.splice(idx, 1);
-    labelPresets = result;
-    LocalStoragePersistence.saveLabelPresets(labelPresets);
+    labelPresets.update((prev) => {
+      const result = [...prev];
+      result.splice(idx, 1);
+      return result;
+    });
   };
 
   const onLabelPresetAdd = () => {
@@ -162,10 +160,8 @@
       tailLength,
       mirror,
     };
-    const newPresets = [...labelPresets, newPreset];
     try {
-      LocalStoragePersistence.saveLabelPresets(newPresets);
-      labelPresets = newPresets;
+      labelPresets.update((prev) => [...prev, newPreset]);
     } catch (e) {
       Toasts.zodErrors(e, "Presets save error:");
     }
@@ -205,31 +201,6 @@
     onUnitChange();
   };
 
-  const onImportClicked = async () => {
-    const contents = await FileUtils.pickAndReadSingleTextFile("json");
-    const rawData = JSON.parse(contents);
-
-    if (!confirm($tr("params.label.warning.import"))) {
-      return;
-    }
-
-    try {
-      const presets = z.array(LabelPresetSchema).parse(rawData);
-      LocalStoragePersistence.saveLabelPresets(presets);
-      labelPresets = presets;
-    } catch (e) {
-      Toasts.zodErrors(e, "Presets load error:");
-    }
-  };
-
-  const onExportClicked = () => {
-    try {
-      FileUtils.saveLabelPresetsAsJson(labelPresets);
-    } catch (e) {
-      Toasts.zodErrors(e, "Presets save error:");
-    }
-  };
-
   onMount(() => {
     const defaultPreset: LabelPreset = DEFAULT_LABEL_PRESETS[0];
     width = defaultPreset.width;
@@ -242,15 +213,6 @@
     tailPos = defaultPreset.tailPos ?? "right";
     tailLength = defaultPreset.tailLength ?? 0;
     mirror = defaultPreset.mirror ?? "none";
-
-    try {
-      const savedPresets: LabelPreset[] | null = LocalStoragePersistence.loadLabelPresets();
-      if (savedPresets !== null) {
-        labelPresets = savedPresets;
-      }
-    } catch (e) {
-      Toasts.zodErrors(e, "Presets load error:");
-    }
 
     tick().then(() => fillWithCurrentParams());
   });
@@ -277,34 +239,9 @@
     <h6 class="dropdown-header">{$tr("params.label.menu_title")}</h6>
 
     <div class="px-3">
-      <div class="p-1">
-        <button class="btn btn-sm btn-outline-secondary" onclick={onImportClicked}>
-          <MdIcon icon="data_object" />
-          {$tr("params.label.import")}
-        </button>
-        <button class="btn btn-sm btn-outline-secondary" onclick={onExportClicked}>
-          <MdIcon icon="data_object" />
-          {$tr("params.label.export")}
-        </button>
-      </div>
-      <div class="mb-3 {error ? 'cursor-help text-warning' : 'text-secondary'}" title={error}>
-        {$tr("params.label.current")}
-        {labelProps.size.width}x{labelProps.size.height}
-        {$tr("params.label.px")}
-        {#if labelProps.printDirection === "top"}
-          ({$tr("params.label.direction")} {$tr("params.label.direction.top")})
-        {:else if labelProps.printDirection === "left"}
-          ({$tr("params.label.direction")} {$tr("params.label.direction.left")})
-        {/if}
-        <button class="btn btn-sm btn-icon-label" onclick={fillWithCurrentParams} title={$tr("params.label.sync_from_canvas")}>
-          <MdIcon icon="arrow_downward" />
-          <span class="btn-icon-label-text">{$tr("params.label.sync_from_canvas")}</span>
-        </button>
-      </div>
-
       <LabelPresetsBrowser
         class="mb-1"
-        presets={labelPresets}
+        presets={presets}
         onItemSelected={onLabelPresetSelected}
         onItemDelete={onLabelPresetDelete} />
 
@@ -457,9 +394,6 @@
     max-width: 450px;
   }
 
-  .cursor-help {
-    cursor: help;
-  }
 
   .svg-icon {
     height: 1.5em;

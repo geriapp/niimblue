@@ -106,6 +106,11 @@ export const RfidLabelProfileSchema = z.object({
 
 export const RfidLabelProfilesSchema = z.array(RfidLabelProfileSchema);
 
+export const ProfilesFileSchema = z.object({
+  rfidProfiles: RfidLabelProfilesSchema.default([]),
+  labelPresets: z.array(LabelPresetSchema).default([]),
+});
+
 export const AutomationPropsSchema = z.object({
   /** Request device connect on page load. Works only for Capacitor BLE connection. */
   autoConnect: z.boolean().optional(),
@@ -132,5 +137,6 @@ export type PreviewPropsOffset = z.infer<typeof PreviewPropsOffsetSchema>;
 export type PreviewProps = z.infer<typeof PreviewPropsSchema>;
 export type RfidLabelProfile = z.infer<typeof RfidLabelProfileSchema>;
 export type RfidLabelProfiles = z.infer<typeof RfidLabelProfilesSchema>;
+export type ProfilesFile = z.infer<typeof ProfilesFileSchema>;
 export type AutomationProps = z.infer<typeof AutomationPropsSchema>;
 export type AppConfig = z.infer<typeof AppConfigSchema>;

@@ -1,12 +1,12 @@
 import * as fabric from "fabric";
 import {
   ExportedLabelTemplateSchema,
-  LabelPresetSchema,
-  RfidLabelProfilesSchema,
+  ProfilesFileSchema,
   type ExportedLabelTemplate,
   type FabricJson,
   type LabelPreset,
   type LabelProps,
+  type ProfilesFile,
 } from "$/types";
 import { OBJECT_DEFAULTS, THUMBNAIL_HEIGHT, THUMBNAIL_QUALITY } from "$/defaults";
 import { z } from "zod";
@@ -169,16 +169,10 @@ export class FileUtils {
     this.downloadBase64(`label_${timestamp}.png`, "image/png", url.split("base64,")[1]);
   }
 
-  /** Convert label template to JSON and download it */
-  static saveLabelPresetsAsJson(presets: LabelPreset[]) {
-    const parsed = z.array(LabelPresetSchema).parse(presets);
-    this.downloadBase64(`presets_${this.timestamp()}.json`, "application/json", this.base64obj(parsed));
-  }
-
-  /** Save RFID profiles to JSON and download */
-  static saveRfidProfilesAsJson(profiles: { rfidId: string; labelProps: LabelProps; title?: string }[]) {
-    const parsed = RfidLabelProfilesSchema.parse(profiles);
-    this.downloadBase64(`rfid_profiles_${this.timestamp()}.json`, "application/json", this.base64obj(parsed));
+  /** Save combined profiles (RFID + label presets) to JSON and download */
+  static saveProfilesAsJson(data: ProfilesFile) {
+    const parsed = ProfilesFileSchema.parse(data);
+    this.downloadBase64(`profiles_${this.timestamp()}.json`, "application/json", this.base64obj(parsed));
   }
 
   /**
