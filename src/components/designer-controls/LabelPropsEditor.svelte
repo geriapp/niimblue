@@ -21,6 +21,7 @@
   import { FileUtils } from "$/utils/file_utils";
   import { z } from "zod";
   import DpiSelector from "$/components/designer-controls/DpiSelector.svelte";
+  import RfidProfilePanel from "$/components/designer-controls/RfidProfilePanel.svelte";
 
   interface Props {
     labelProps: LabelProps;
@@ -268,8 +269,9 @@
 </script>
 
 <div class="dropdown">
-  <button class="btn btn-sm btn-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+  <button class="btn btn-sm btn-secondary btn-icon-label" data-bs-toggle="dropdown" data-bs-auto-close="outside">
     <MdIcon icon="settings" />
+    <span class="btn-icon-label-text">{$tr("params.label.profile_settings")}</span>
   </button>
   <div class="dropdown-menu">
     <h6 class="dropdown-header">{$tr("params.label.menu_title")}</h6>
@@ -305,6 +307,11 @@
         presets={labelPresets}
         onItemSelected={onLabelPresetSelected}
         onItemDelete={onLabelPresetDelete} />
+
+      <div class=" border-top pt-2 mt-2">
+        <h6 class="small text-secondary mb-2">{$tr("params.rfid_profiles.section")}</h6>
+        <RfidProfilePanel />
+      </div>
 
       <div class="input-group flex-nowrap input-group-sm mb-2">
         <span class="input-group-text">{$tr("params.label.size")}</span>

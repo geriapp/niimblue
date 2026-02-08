@@ -5,6 +5,7 @@ import {
   LabelPresetSchema,
   LabelPropsSchema,
   PreviewPropsSchema,
+  RfidLabelProfilesSchema,
   type AutomationProps,
   type ConnectionType,
   type ExportedLabelTemplate,
@@ -12,6 +13,7 @@ import {
   type LabelPreset,
   type LabelProps,
   type PreviewProps,
+  type RfidLabelProfiles,
 } from "$/types";
 import { z } from "zod";
 import { FileUtils } from "$/utils/file_utils";
@@ -368,5 +370,23 @@ export class LocalStoragePersistence {
    */
   static loadCachedFonts(): string[] {
     return this.loadAndValidateObject("font_cache", z.array(z.string())) ?? [];
+  }
+
+  static saveRfidProfiles(profiles: RfidLabelProfiles) {
+    this.validateAndSaveObject("rfid_label_profiles", profiles, RfidLabelProfilesSchema);
+  }
+
+  static loadRfidProfiles(): RfidLabelProfiles {
+    try {
+      const data = this.loadAndValidateObject(
+        "rfid_label_profiles",
+        RfidLabelProfilesSchema,
+      );
+      return data ?? [];
+    } catch (e) {
+      console.error("loadRfidProfiles error:", e);
+      localStorage.removeItem("rfid_label_profiles");
+      return [];
+    }
   }
 }

@@ -2,6 +2,7 @@ import * as fabric from "fabric";
 import {
   ExportedLabelTemplateSchema,
   LabelPresetSchema,
+  RfidLabelProfilesSchema,
   type ExportedLabelTemplate,
   type FabricJson,
   type LabelPreset,
@@ -172,6 +173,12 @@ export class FileUtils {
   static saveLabelPresetsAsJson(presets: LabelPreset[]) {
     const parsed = z.array(LabelPresetSchema).parse(presets);
     this.downloadBase64(`presets_${this.timestamp()}.json`, "application/json", this.base64obj(parsed));
+  }
+
+  /** Save RFID profiles to JSON and download */
+  static saveRfidProfilesAsJson(profiles: { rfidId: string; labelProps: LabelProps; title?: string }[]) {
+    const parsed = RfidLabelProfilesSchema.parse(profiles);
+    this.downloadBase64(`rfid_profiles_${this.timestamp()}.json`, "application/json", this.base64obj(parsed));
   }
 
   /**

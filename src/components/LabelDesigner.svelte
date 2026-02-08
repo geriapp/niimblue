@@ -5,7 +5,7 @@
   import { Barcode } from "$/fabric-object/barcode";
   import { QRCode } from "$/fabric-object/qrcode";
   import { iconCodepoints, type MaterialIcon } from "$/styles/mdi_icons";
-  import { automation, connectionState, csvData } from "$/stores";
+  import { automation, connectionState, csvData, currentLabelProps, labelPropsToApply } from "$/stores";
   import {
     type ExportedLabelTemplate,
     type FabricJson,
@@ -149,15 +149,30 @@
 
   const onUpdateLabelProps = (newProps: LabelProps) => {
     labelProps = newProps;
-    fabricCanvas!.setDimensions(labelProps.size);
-    fabricCanvas!.virtualZoom(fabricCanvas!.getVirtualZoom());
-    try {
-      LocalStoragePersistence.saveLastLabelProps(labelProps);
-      undo.push(fabricCanvas!, labelProps);
-    } catch (e) {
-      Toasts.zodErrors(e, "Label parameters save error:");
+    currentLabelProps.set(labelProps);
+    if (fabricCanvas) {
+      fabricCanvas.setDimensions(labelProps.size);
+      fabricCanvas.virtualZoom(fabricCanvas.getVirtualZoom());
+      try {
+        LocalStoragePersistence.saveLastLabelProps(labelProps);
+        undo.push(fabricCanvas, labelProps);
+      } catch (e) {
+        Toasts.zodErrors(e, "Label parameters save error:");
+      }
     }
   };
+
+  $effect(() => {
+    currentLabelProps.set(labelProps);
+  });
+
+  $effect(() => {
+    const toApply = $labelPropsToApply;
+    if (toApply && fabricCanvas) {
+      labelPropsToApply.set(null);
+      onUpdateLabelProps(toApply);
+    }
+  });
 
   const exportCurrentLabel = (): ExportedLabelTemplate => {
     return FileUtils.makeExportedLabel(fabricCanvas!, labelProps, csvEnabled);
