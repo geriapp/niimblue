@@ -33,3 +33,23 @@ body {
 .cursor-help {
   cursor: help;
 }
+
+/* Icon + label under icon, used for toolbar and connector buttons */
+.btn-icon-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.5rem;
+  min-width: 2.5rem;
+
+  .mdi {
+    font-size: 1.1rem;
+  }
+
+  .btn-icon-label-text {
+    font-size: 0.65rem;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}

@@ -294,7 +294,10 @@
         {:else if labelProps.printDirection === "left"}
           ({$tr("params.label.direction")} {$tr("params.label.direction.left")})
         {/if}
-        <button class="btn btn-sm" onclick={fillWithCurrentParams}><MdIcon icon="arrow_downward" /></button>
+        <button class="btn btn-sm btn-icon-label" onclick={fillWithCurrentParams} title={$tr("params.label.sync_from_canvas")}>
+          <MdIcon icon="arrow_downward" />
+          <span class="btn-icon-label-text">{$tr("params.label.sync_from_canvas")}</span>
+        </button>
       </div>
 
       <LabelPresetsBrowser
@@ -306,7 +309,10 @@
       <div class="input-group flex-nowrap input-group-sm mb-2">
         <span class="input-group-text">{$tr("params.label.size")}</span>
         <input class="form-control" type="number" min="1" step={unit === "px" ? 8 : 1} bind:value={width} />
-        <button class="btn btn-sm btn-secondary" onclick={onFlip}><MdIcon icon="swap_horiz" /></button>
+        <button class="btn btn-sm btn-secondary btn-icon-label" onclick={onFlip} title={$tr("params.label.flip")}>
+          <MdIcon icon="swap_horiz" />
+          <span class="btn-icon-label-text">{$tr("params.label.flip")}</span>
+        </button>
         <input class="form-control" type="number" min="1" step={unit === "px" ? 8 : 1} bind:value={height} />
         <select class="form-select" bind:value={unit} onchange={onUnitChange}>
           <option value="mm"> {$tr("params.label.mm")}</option>

@@ -117,8 +117,9 @@
 
 <div class="input-group w-auto input-group-sm flex-nowrap justify-content-end">
   {#if $connectionState === "connected"}
-    <button class="btn btn-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+    <button class="btn btn-secondary btn-icon-label" data-bs-toggle="dropdown" data-bs-auto-close="outside">
       <MdIcon icon="settings" />
+      <span class="btn-icon-label-text">{$tr("connector.settings")}</span>
     </button>
     <div class="dropdown-menu p-1">
       {#if $printerInfo}
@@ -276,17 +277,19 @@
 
   {#if $connectionState !== "connected"}
     <button
-      class="btn btn-primary"
+      class="btn btn-primary btn-icon-label"
       disabled={$connectionState === "connecting" ||
         (!featureSupport.capacitorBle && !featureSupport.webBluetooth && !featureSupport.webSerial)}
       onclick={onConnectClicked}>
       <MdIcon icon="power" />
+      <span class="btn-icon-label-text">{$tr("connector.connect")}</span>
     </button>
   {/if}
 
   {#if $connectionState === "connected"}
-    <button class="btn btn-danger" onclick={onDisconnectClicked}>
+    <button class="btn btn-danger btn-icon-label" onclick={onDisconnectClicked}>
       <MdIcon icon="power_off" />
+      <span class="btn-icon-label-text">{$tr("connector.disconnect")}</span>
     </button>
   {/if}
 </div>

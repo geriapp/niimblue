@@ -414,6 +414,42 @@
 <svelte:window bind:innerWidth={windowWidth} onkeydown={onKeyDown} onpaste={onPaste} />
 
 <div class="image-editor">
+  <div class="row mb-2">
+    <div class="col d-flex justify-content-center">
+      <div class="label-status-bar">
+        <span class="label-status-card">
+          <MdIcon icon="label" class="label-status-icon" />
+          <span class="label-status-content">
+            <span class="label-status-title">{$tr("editor.status.label")}</span>
+            <span class="label-status-dims">
+              {labelProps.size.width}×{labelProps.size.height} px
+              <span class="label-status-mm">
+                ({Math.round((labelProps.size.width / 8) * 10) / 10}×{Math.round((labelProps.size.height / 8) * 10) / 10} {$tr("params.label.mm")})
+              </span>
+            </span>
+          </span>
+        </span>
+        <span class="label-status-card">
+          <MdIcon icon={labelProps.printDirection === "top" ? "north" : "west"} class="label-status-icon" />
+          <span class="label-status-content">
+            <span class="label-status-title">{$tr("params.label.direction")}</span>
+            <span class="label-status-value">
+              {$tr(labelProps.printDirection === "top" ? "params.label.direction.top" : "params.label.direction.left")}
+            </span>
+          </span>
+        </span>
+        <span class="label-status-card">
+          <MdIcon icon={labelProps.shape === "circle" ? "circle" : labelProps.shape === "rounded_rect" ? "rounded_corner" : "crop_square"} class="label-status-icon" />
+          <span class="label-status-content">
+            <span class="label-status-title">{$tr("params.label.shape")}</span>
+            <span class="label-status-value">
+              {$tr(`editor.status.shape.${labelProps.shape ?? "rect"}`)}
+            </span>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
   <div class="row mb-3">
     <div class="col d-flex {windowWidth === 0 || labelProps.size.width < windowWidth ? 'justify-content-center' : ''}">
       <div class="canvas-wrapper print-start-{labelProps.printDirection}">
@@ -427,8 +463,9 @@
       <div class="toolbar d-flex flex-wrap gap-1 justify-content-center align-items-center">
         <LabelPropsEditor {labelProps} onChange={onUpdateLabelProps} />
 
-        <button class="btn btn-sm btn-secondary" onclick={clearCanvas} title={$tr("editor.clear")}>
+        <button class="btn btn-sm btn-secondary btn-icon-label" onclick={clearCanvas} title={$tr("editor.clear")}>
           <MdIcon icon="cancel_presentation" />
+          <span class="btn-icon-label-text">{$tr("editor.clear.short")}</span>
         </button>
 
         <SavedLabelsMenu
@@ -438,19 +475,21 @@
           {csvEnabled} />
 
         <button
-          class="btn btn-sm btn-secondary"
+          class="btn btn-sm btn-secondary btn-icon-label"
           disabled={undoState.undoDisabled}
           onclick={() => undo.undo()}
           title={$tr("editor.undo")}>
           <MdIcon icon="undo" />
+          <span class="btn-icon-label-text">{$tr("editor.undo")}</span>
         </button>
 
         <button
-          class="btn btn-sm btn-secondary"
+          class="btn btn-sm btn-secondary btn-icon-label"
           disabled={undoState.redoDisabled}
           onclick={() => undo.redo()}
           title={$tr("editor.redo")}>
           <MdIcon icon="redo" />
+          <span class="btn-icon-label-text">{$tr("editor.redo")}</span>
         </button>
 
         <CsvControl bind:enabled={csvEnabled} onPlaceholderPicked={onCsvPlaceholderPicked} />
@@ -475,14 +514,16 @@
     <div class="col d-flex justify-content-center">
       <div class="toolbar d-flex flex-wrap gap-1 justify-content-center align-items-center">
         {#if selectedCount > 0}
-          <button class="btn btn-sm btn-danger me-1" onclick={deleteSelected} title={$tr("editor.delete")}>
+          <button class="btn btn-sm btn-danger me-1 btn-icon-label" onclick={deleteSelected} title={$tr("editor.delete")}>
             <MdIcon icon="delete" />
+            <span class="btn-icon-label-text">{$tr("editor.delete")}</span>
           </button>
         {/if}
 
         {#if selectedCount > 0}
-          <button class="btn btn-sm btn-secondary me-1" onclick={cloneSelected} title={$tr("editor.clone")}>
+          <button class="btn btn-sm btn-secondary me-1 btn-icon-label" onclick={cloneSelected} title={$tr("editor.clone")}>
             <MdIcon icon="content_copy" />
+            <span class="btn-icon-label-text">{$tr("editor.clone")}</span>
           </button>
         {/if}
 
@@ -537,5 +578,56 @@
   }
   .canvas-wrapper canvas {
     image-rendering: pixelated;
+  }
+
+  .label-status-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .label-status-card {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0.85rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+    font-size: 0.85rem;
+  }
+
+  .label-status-icon {
+    opacity: 0.7;
+  }
+
+  .label-status-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    line-height: 1.2;
+    text-align: center;
+  }
+
+  .label-status-title {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--bs-secondary-color);
+  }
+
+  .label-status-dims,
+  .label-status-value {
+    font-weight: 600;
+    color: var(--bs-body-color);
+  }
+
+  .label-status-mm {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--bs-secondary-color);
   }
 </style>

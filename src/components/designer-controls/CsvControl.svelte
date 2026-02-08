@@ -28,11 +28,12 @@
 
 <div class="dropdown">
   <button
-    class="btn btn-sm btn-{enabled ? 'warning' : 'secondary'}"
+    class="btn btn-sm btn-{enabled ? 'warning' : 'secondary'} btn-icon-label"
     data-bs-toggle="dropdown"
     data-bs-auto-close="outside"
     title={$tr("params.csv.title")}>
     <MdIcon icon="dataset" />
+    <span class="btn-icon-label-text">{$tr("params.csv.short")}</span>
   </button>
   <div class="dropdown-menu">
     <h6 class="dropdown-header">{$tr("params.csv.title")}</h6>

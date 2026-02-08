@@ -202,8 +202,9 @@
 </script>
 
 <div class="dropdown">
-  <button class="btn btn-sm btn-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+  <button class="btn btn-sm btn-secondary btn-icon-label" data-bs-toggle="dropdown" data-bs-auto-close="outside">
     <MdIcon icon="sd_storage" />
+    <span class="btn-icon-label-text">{$tr("params.saved_labels.short")}</span>
   </button>
   <div class="saved-labels dropdown-menu" bind:this={dropdownRef}>
     <h6 class="dropdown-header text-wrap">

@@ -8,6 +8,7 @@ import {
   type AutomationProps,
   type ConnectionType,
   type ExportedLabelTemplate,
+  type FabricJson,
   type LabelPreset,
   type LabelProps,
   type PreviewProps,
@@ -124,11 +125,14 @@ export class LocalStoragePersistence {
   //   };
   // }
 
-  /**
-   * @throws {z.ZodError}
-   */
   static loadLastLabelProps(): LabelProps | null {
-    return this.loadAndValidateObject("last_label_props", LabelPropsSchema);
+    try {
+      return this.loadAndValidateObject("last_label_props", LabelPropsSchema);
+    } catch (e) {
+      console.error("loadLastLabelProps error:", e);
+      localStorage.removeItem("last_label_props");
+      return null;
+    }
   }
 
   /**
@@ -192,55 +196,64 @@ export class LocalStoragePersistence {
     return { zodErrors, otherErrors };
   }
 
-  /**
-   * @throws {z.ZodError}
-   */
   static loadLabels(): ExportedLabelTemplate[] {
-    const legacyLabel = this.loadAndValidateObject(
-      "saved_canvas_props",
-      LabelPropsSchema,
-    );
-    const legacyCanvas = this.loadAndValidateObject(
-      "saved_canvas_data",
-      FabricJsonSchema,
-    );
-    const items: ExportedLabelTemplate[] = [];
+    try {
+      let legacyLabel: LabelProps | null = null;
+      let legacyCanvas: FabricJson | null = null;
+      try {
+        legacyLabel = this.loadAndValidateObject(
+          "saved_canvas_props",
+          LabelPropsSchema,
+        );
+        legacyCanvas = this.loadAndValidateObject(
+          "saved_canvas_data",
+          FabricJsonSchema,
+        );
+      } catch {
+        localStorage.removeItem("saved_canvas_props");
+        localStorage.removeItem("saved_canvas_data");
+      }
+      const items: ExportedLabelTemplate[] = [];
 
-    if (legacyLabel !== null && legacyCanvas !== null) {
-      localStorage.removeItem("saved_canvas_props");
-      localStorage.removeItem("saved_canvas_data");
-      const item: ExportedLabelTemplate = {
-        label: legacyLabel,
-        canvas: legacyCanvas,
-        timestamp: FileUtils.timestamp(),
-      };
-      this.validateAndSaveObject(
-        `saved_label_${item.timestamp}`,
-        item,
-        ExportedLabelTemplateSchema,
-      );
-    }
+      if (legacyLabel !== null && legacyCanvas !== null) {
+        localStorage.removeItem("saved_canvas_props");
+        localStorage.removeItem("saved_canvas_data");
+        const item: ExportedLabelTemplate = {
+          label: legacyLabel,
+          canvas: legacyCanvas,
+          timestamp: FileUtils.timestamp(),
+        };
+        this.validateAndSaveObject(
+          `saved_label_${item.timestamp}`,
+          item,
+          ExportedLabelTemplateSchema,
+        );
+      }
 
-    Object.keys(localStorage)
-      .sort()
-      .forEach((key) => {
-        if (key.startsWith("saved_label")) {
-          try {
-            const item = this.loadAndValidateObject(
-              key,
-              ExportedLabelTemplateSchema,
-            );
-            if (item != null) {
-              item.id = key;
-              items.push(item);
+      Object.keys(localStorage)
+        .sort()
+        .forEach((key) => {
+          if (key.startsWith("saved_label")) {
+            try {
+              const item = this.loadAndValidateObject(
+                key,
+                ExportedLabelTemplateSchema,
+              );
+              if (item != null) {
+                item.id = key;
+                items.push(item);
+              }
+            } catch (e) {
+              console.error(e);
             }
-          } catch (e) {
-            console.error(e);
           }
-        }
-      });
+        });
 
-    return items;
+      return items;
+    } catch (e) {
+      console.error("loadLabels error:", e);
+      return [];
+    }
   }
 
   /**
@@ -275,15 +288,18 @@ export class LocalStoragePersistence {
     );
   }
 
-  /**
-   * @throws {z.ZodError}
-   */
   static loadLabelPresets(): LabelPreset[] | null {
-    const presets = this.loadAndValidateObject(
-      "label_presets",
-      z.array(LabelPresetSchema),
-    );
-    return presets === null || presets.length === 0 ? null : presets;
+    try {
+      const presets = this.loadAndValidateObject(
+        "label_presets",
+        z.array(LabelPresetSchema),
+      );
+      return presets === null || presets.length === 0 ? null : presets;
+    } catch (e) {
+      console.error("loadLabelPresets error:", e);
+      localStorage.removeItem("label_presets");
+      return null;
+    }
   }
 
   static loadLastConnectionType(): ConnectionType | null {
@@ -323,14 +339,17 @@ export class LocalStoragePersistence {
     );
   }
 
-  /**
-   * @throws {z.ZodError}
-   */
   static loadDefaultTemplate(): ExportedLabelTemplate | null {
-    return this.loadAndValidateObject(
-      "default_template",
-      ExportedLabelTemplateSchema,
-    );
+    try {
+      return this.loadAndValidateObject(
+        "default_template",
+        ExportedLabelTemplateSchema,
+      );
+    } catch (e) {
+      console.error("loadDefaultTemplate error:", e);
+      localStorage.removeItem("default_template");
+      return null;
+    }
   }
 
   static hasCustomDefaultTemplate(): boolean {

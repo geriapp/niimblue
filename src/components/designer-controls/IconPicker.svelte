@@ -67,9 +67,9 @@
 </script>
 
 <div class="dropdown" bind:this={dropdown}>
-  <button class="btn btn-sm btn-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+  <button class="btn btn-sm btn-secondary btn-icon-label" data-bs-toggle="dropdown" data-bs-auto-close="outside">
     <MdIcon icon="emoji_emotions" />
-    <MdIcon icon="add" />
+    <span class="btn-icon-label-text">{$tr("editor.iconpicker.short")}</span>
   </button>
 
   <div class="dropdown-menu">

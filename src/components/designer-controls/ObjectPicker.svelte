@@ -14,9 +14,9 @@
 </script>
 
 <div class="dropdown">
-  <button class="btn btn-sm btn-secondary" data-bs-toggle="dropdown" data-bs-auto-close="outside">
+  <button class="btn btn-sm btn-secondary btn-icon-label" data-bs-toggle="dropdown" data-bs-auto-close="outside">
     <MdIcon icon="format_shapes" />
-    <MdIcon icon="add" />
+    <span class="btn-icon-label-text">{$tr("editor.objectpicker.short")}</span>
   </button>
 
   <div class="dropdown-menu">
