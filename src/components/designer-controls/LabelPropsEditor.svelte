@@ -10,7 +10,7 @@
     type TailPosition,
   } from "$/types";
   import LabelPresetsBrowser from "$/components/designer-controls/LabelPresetsBrowser.svelte";
-  import { labelPresets, printerMeta } from "$/stores";
+  import { labelPresets, printerMeta, rfidProfiles, saveProfilesToApi } from "$/stores";
   import { tr } from "$/utils/i18n";
   import { DEFAULT_LABEL_PRESETS } from "$/defaults";
   import { onMount, tick } from "svelte";
@@ -33,7 +33,7 @@
   const labelSplits: LabelSplit[] = ["none", "vertical", "horizontal"];
   const mirrorTypes: MirrorType[] = ["none", "flip", "copy"];
 
-  const presets = $derived($labelPresets.length > 0 ? $labelPresets : DEFAULT_LABEL_PRESETS);
+  const presets = $derived($labelPresets);
 
   let title = $state<string | undefined>("");
   let prevUnit: LabelUnit = "mm";
@@ -138,11 +138,10 @@
   };
 
   const onLabelPresetDelete = (idx: number) => {
-    labelPresets.update((prev) => {
-      const result = [...prev];
-      result.splice(idx, 1);
-      return result;
-    });
+    const current = $labelPresets;
+    const result = current.filter((_, i) => i !== idx);
+    labelPresets.set(result);
+    saveProfilesToApi({ rfidProfiles: $rfidProfiles, labelPresets: result });
   };
 
   const onLabelPresetAdd = () => {
@@ -161,7 +160,9 @@
       mirror,
     };
     try {
-      labelPresets.update((prev) => [...prev, newPreset]);
+      const newPresets = [...$labelPresets, newPreset];
+      labelPresets.set(newPresets);
+      saveProfilesToApi({ rfidProfiles: $rfidProfiles, labelPresets: newPresets });
     } catch (e) {
       Toasts.zodErrors(e, "Presets save error:");
     }

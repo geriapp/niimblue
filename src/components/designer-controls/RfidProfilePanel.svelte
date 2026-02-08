@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { rfidInfo, rfidProfiles, labelPresets, currentLabelProps } from "$/stores";
+  import { rfidInfo, rfidProfiles, labelPresets, currentLabelProps, saveProfilesToApi } from "$/stores";
   import { FileUtils } from "$/utils/file_utils";
   import { Toasts } from "$/utils/toasts";
   import { tr } from "$/utils/i18n";
@@ -29,11 +29,13 @@
       next.push(profile);
     }
     rfidProfiles.set(next);
+    saveProfilesToApi({ rfidProfiles: next, labelPresets: $labelPresets });
   };
 
   const onDelete = (rfidId: string) => {
     const next = $rfidProfiles.filter((p) => p.rfidId !== rfidId);
     rfidProfiles.set(next);
+    saveProfilesToApi({ rfidProfiles: next, labelPresets: $labelPresets });
   };
 
   const onImportJson = async () => {
@@ -48,6 +50,7 @@
       const parsed = ProfilesFileSchema.parse(rawData);
       rfidProfiles.set(parsed.rfidProfiles);
       labelPresets.set(parsed.labelPresets);
+      saveProfilesToApi(parsed);
       Toasts.message($tr("params.rfid_profiles.imported"));
     } catch (e) {
       Toasts.zodErrors(e, "Profiles load error:");

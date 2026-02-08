@@ -1,5 +1,5 @@
 import { get, readable, writable } from "svelte/store";
-import { AppConfigSchema, CsvParams, CsvParamsSchema, ProfilesFileSchema, UserIconsList, UserIconsListSchema, type AppConfig, type AutomationProps, type ConnectionState, type ConnectionType, type LabelPreset, type LabelProps, type RfidLabelProfiles } from "$/types";
+import { AppConfigSchema, CsvParams, CsvParamsSchema, ProfilesFileSchema, UserIconsList, UserIconsListSchema, type AppConfig, type AutomationProps, type ConnectionState, type ConnectionType, type LabelPreset, type LabelProps, type ProfilesFile, type RfidLabelProfiles } from "$/types";
 import {
   NiimbotBluetoothClient,
   NiimbotCapacitorBleClient,
@@ -36,6 +36,19 @@ export const csvData = writablePersisted<CsvParams>("csv_params", CsvParamsSchem
 
 export const rfidProfiles = writable<RfidLabelProfiles>([]);
 export const labelPresets = writable<LabelPreset[]>([]);
+
+export const saveProfilesToApi = async (data: ProfilesFile): Promise<void> => {
+  try {
+    const res = await fetch("/api/profiles", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) throw new Error("Save failed");
+  } catch {
+    // API not available (static deployment) - ignore
+  }
+};
 
 export const loadProfilesFromFile = async (): Promise<void> => {
   try {
